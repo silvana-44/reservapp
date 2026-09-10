@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResevApp — Reserva tu mesa</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   VARIABLES Y RESET
+═══════════════════════════════════════════════ */
+:root{
+  --bg:        #080a0f;
+  --surface:   #0d1018;
+  --card:      #111520;
+  --card-h:    #161b28;
+  --amber:     #e8a030;
+  --amber-l:   #f5c060;
+  --amber-d:   #8a5c10;
+  --cream:     #f0e8d8;
+  --text:      #c8d0e0;
+  --muted:     #5a6480;
+  --dim:       #8a94b0;
+  --red:       #d04040;
+  --green:     #38c878;
+  --border:    rgba(232,160,48,0.12);
+  --border-s:  rgba(232,160,48,0.30);
+  --r:         14px;
+  --r-sm:      8px;
+  --shadow:    0 12px 50px rgba(0,0,0,0.7);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Outfit',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* fondo estrellado sutil */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%, rgba(232,160,48,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(60,80,160,0.05) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ═══ NAV ═══════════════════════════════════════ */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 48px;
+  background:rgba(8,10,15,0.88);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:700;letter-spacing:1px;
+  color:var(--amber);
+}
+.logo b{color:var(--cream);font-weight:400}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-pill{
+  font-size:12px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--border);
+  padding:6px 14px;border-radius:50px;
+}
+.btn-ghost{
+  background:transparent;border:1px solid var(--border-s);
+  color:var(--amber);padding:9px 20px;border-radius:50px;
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:.2s;letter-spacing:.5px;
+}
+.btn-ghost:hover{background:rgba(232,160,48,0.08);border-color:var(--amber)}
+
+/* ═══ HERO ═══════════════════════════════════════ */
+.hero{
+  position:relative;z-index:1;
+  text-align:center;padding:100px 24px 72px;
+  overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;
+  bottom:0;left:50%;transform:translateX(-50%);
+  width:600px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border-s),transparent);
+}
+.eyebrow{
+  display:inline-block;
+  font-size:11px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--amber);border:1px solid var(--border-s);
+  padding:7px 20px;border-radius:50px;margin-bottom:32px;
+}
+.hero h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(42px,8vw,88px);font-weight:700;line-height:1;
+  color:var(--cream);margin-bottom:24px;
+}
+.hero h1 em{font-style:italic;color:var(--amber)}
+.hero p{
+  font-size:16px;color:var(--dim);
+  max-width:440px;margin:0 auto 52px;line-height:1.8;font-weight:300;
+}
+.hero-kpis{
+  display:flex;justify-content:center;gap:56px;
+}
+.kpi-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:36px;font-weight:700;color:var(--amber);
+}
+.kpi-lbl{
+  font-size:11px;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;margin-top:2px;
+}
+
+/* ═══ SECCIÓN PRINCIPAL ═══════════════════════════ */
+.wrap{max-width:1200px;margin:0 auto;padding:64px 24px;position:relative;z-index:1}
+
+.sec-header{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:32px;flex-wrap:wrap;gap:16px;
+}
+.sec-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:38px;font-weight:700;color:var(--cream);
+}
+.sec-title small{
+  display:block;font-family:'Outfit',sans-serif;
+  font-size:11px;color:var(--amber);
+  letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;font-weight:500;
+}
+
+/* toggle */
+.toggle-tabs{
+  display:flex;gap:4px;background:var(--surface);
+  padding:4px;border-radius:50px;border:1px solid var(--border);
+}
+.tab-btn{
+  padding:8px 22px;border-radius:50px;border:none;
+  font-family:'Outfit',sans-serif;font-size:13px;
+  cursor:pointer;transition:.2s;background:transparent;color:var(--muted);
+}
+.tab-btn.on{background:var(--amber);color:#080a0f;font-weight:700}
+
+/* filtros */
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.flt{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--dim);padding:8px 18px;border-radius:50px;
+  font-family:'Outfit',sans-serif;font-size:13px;
+  cursor:pointer;transition:.2s;
+}
+.flt:hover,.flt.on{
+  background:var(--amber);color:#080a0f;
+  border-color:var(--amber);font-weight:600;
+}
+
+/* ═══ GRID RESTAURANTES ══════════════════════════ */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:20px;
+}
+
+.rcard{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;cursor:pointer;
+  transition:transform .28s cubic-bezier(.25,.46,.45,.94),
+             box-shadow .28s,border-color .28s;
+}
+.rcard:hover{
+  transform:translateY(-5px);
+  box-shadow:var(--shadow);border-color:var(--border-s);
+  background:var(--card-h);
+}
+
+.rc-img{
+  height:148px;display:flex;align-items:center;justify-content:center;
+  font-size:76px;position:relative;
+  background:linear-gradient(135deg,rgba(232,160,48,.07),rgba(8,10,15,.6));
+  border-bottom:1px solid var(--border);
+}
+.rc-img::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 35% 40%,rgba(232,160,48,.1),transparent 55%);
+}
+.badge-premium{
+  position:absolute;top:12px;right:12px;
+  background:linear-gradient(135deg,#c8890a,#f5c060);
+  color:#2a1500;font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 11px;border-radius:50px;
+}
+
+.rc-body{padding:22px}
+.rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.rc-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:700;color:var(--cream);
+}
+.rc-price{
+  font-size:12px;color:var(--amber);font-weight:600;
+  background:rgba(232,160,48,.1);
+  padding:4px 11px;border-radius:50px;white-space:nowrap;flex-shrink:0;
+}
+.rc-cocina{
+  font-size:11px;color:var(--amber-d);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;
+}
+.rc-meta{display:flex;gap:18px;margin-bottom:16px}
+.rc-m{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.chip-lbl{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.chip{
+  background:rgba(232,160,48,.06);border:1px solid rgba(232,160,48,.18);
+  color:var(--dim);font-size:11px;padding:3px 10px;border-radius:50px;
+}
+.chip.c{border-color:rgba(140,100,220,.25)}
+
+.btn-res{
+  width:100%;margin-top:18px;
+  background:linear-gradient(135deg,var(--amber),var(--amber-l));
+  color:#080a0f;border:none;padding:13px;border-radius:var(--r-sm);
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:.2s;letter-spacing:.5px;
+}
+.btn-res:hover{box-shadow:0 4px 24px rgba(232,160,48,.4);transform:translateY(-1px)}
+
+/* ═══ PANEL MIS RESERVAS ════════════════════════ */
+.panel-res{display:none}
+.panel-res.on{display:block}
+
+.rv-item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px 26px;margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:center;
+  gap:20px;transition:border-color .2s;
+}
+.rv-item:hover{border-color:var(--border-s)}
+.rv-id{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:700;color:var(--amber);margin-bottom:5px;
+}
+.rv-info{font-size:13px;color:var(--dim);line-height:1.7}
+.rv-info strong{color:var(--cream)}
+.estado{
+  padding:4px 14px;border-radius:50px;
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  white-space:nowrap;
+}
+.e-conf{background:rgba(56,200,120,.1);color:var(--green);border:1px solid rgba(56,200,120,.3)}
+.e-canc{background:rgba(208,64,64,.1);color:var(--red);border:1px solid rgba(208,64,64,.3)}
+.btn-canc-rv{
+  background:transparent;border:1px solid rgba(208,64,64,.3);
+  color:var(--red);padding:6px 14px;border-radius:var(--r-sm);
+  font-family:'Outfit',sans-serif;font-size:12px;
+  cursor:pointer;transition:.2s;margin-top:8px;display:inline-block;
+}
+.btn-canc-rv:hover{background:rgba(208,64,64,.1)}
+
+.empty{text-align:center;padding:70px 20px;color:var(--muted)}
+.empty-ico{font-size:52px;margin-bottom:18px}
+.empty p{font-size:15px;line-height:1.7}
+
+/* ═══ MODAL ══════════════════════════════════════ */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(4,6,10,0.88);backdrop-filter:blur(10px);
+  z-index:200;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.on{display:flex}
+
+.modal{
+  background:var(--card);
+  border:1px solid var(--border-s);border-radius:20px;
+  width:100%;max-width:520px;max-height:92vh;
+  overflow-y:auto;
+  box-shadow:0 40px 100px rgba(0,0,0,0.85);
+  animation:mIn .32s cubic-bezier(.34,1.56,.64,1);
+  scrollbar-width:thin;scrollbar-color:var(--amber-d) transparent;
+}
+@keyframes mIn{
+  from{opacity:0;transform:scale(.9) translateY(24px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.m-head{
+  padding:28px 32px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:flex-start;
+  position:sticky;top:0;background:var(--card);z-index:2;
+  border-radius:20px 20px 0 0;
+}
+.m-rname{
+  font-family:'Cormorant Garamond',serif;
+  font-size:24px;font-weight:700;color:var(--cream);margin-bottom:4px;
+}
+.m-rsub{font-size:12px;color:var(--muted)}
+.m-close{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);color:var(--dim);
+  width:36px;height:36px;border-radius:50%;
+  cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;flex-shrink:0;
+}
+.m-close:hover{background:rgba(232,160,48,.1);color:var(--amber)}
+
+.m-body{padding:28px 32px}
+.m-foot{
+  padding:20px 32px 28px;
+  border-top:1px solid var(--border);
+  display:flex;gap:10px;justify-content:flex-end;
+}
+
+/* ── steps ────────── */
+.steps-bar{display:flex;gap:4px;margin-bottom:8px}
+.sdot{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
+.sdot.done{background:var(--amber)}
+.slbls{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:var(--muted);
+  letter-spacing:1.5px;text-transform:uppercase;
+  margin-bottom:28px;
+}
+
+/* ── form ─────────── */
+.fg{margin-bottom:20px}
+.flbl{
+  display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--amber-d);margin-bottom:10px;font-weight:600;
+}
+.finp{
+  width:100%;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);color:var(--cream);
+  padding:13px 16px;border-radius:var(--r-sm);
+  font-family:'Outfit',sans-serif;font-size:14px;
+  transition:border-color .2s;outline:none;
+}
+.finp:focus{border-color:var(--amber);background:rgba(232,160,48,.03)}
+.finp::placeholder{color:var(--muted)}
+select.finp option{background:#111520}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── horarios ─────── */
+.h-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.h-opt{
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  color:var(--dim);padding:11px 8px;border-radius:var(--r-sm);
+  font-family:'Outfit',sans-serif;font-size:13px;
+  cursor:pointer;text-align:center;transition:.2s;
+}
+.h-opt:hover{border-color:var(--amber-d);color:var(--cream)}
+.h-opt.on{background:var(--amber);color:#080a0f;border-color:var(--amber);font-weight:700}
+.h-turno{
+  grid-column:1/-1;
+  font-size:10px;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;
+  padding:4px 0 2px;cursor:default;
+}
+
+/* ── mesas ────────── */
+.avail-ok{
+  background:rgba(56,200,120,.07);border:1px solid rgba(56,200,120,.2);
+  border-radius:var(--r-sm);padding:11px 15px;
+  font-size:13px;color:var(--green);margin-bottom:18px;display:none;
+}
+.avail-no{
+  background:rgba(208,64,64,.07);border:1px solid rgba(208,64,64,.2);
+  border-radius:var(--r-sm);padding:11px 15px;
+  font-size:13px;color:var(--red);margin-bottom:18px;display:none;
+}
+.avail-ok.on,.avail-no.on{display:block}
+
+.mesas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mc{
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:14px 10px;
+  text-align:center;cursor:pointer;transition:.2s;
+}
+.mc:hover{border-color:var(--amber-d)}
+.mc.on{background:rgba(232,160,48,.1);border-color:var(--amber)}
+.mc.ocupada{opacity:.3;cursor:not-allowed}
+.mc-ico{font-size:26px;margin-bottom:6px}
+.mc-num{font-size:12px;font-weight:700;color:var(--cream);letter-spacing:1px}
+.mc-cap{font-size:10px;color:var(--muted);margin-top:2px}
+.mc-ub{font-size:9px;color:var(--amber-d);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.mc-occ{font-size:9px;color:var(--red);margin-top:3px}
+
+/* ── confirm ──────── */
+.conf-card{
+  background:rgba(232,160,48,.05);border:1px solid rgba(232,160,48,.25);
+  border-radius:var(--r);padding:26px;margin-bottom:20px;
+}
+.conf-id{
+  font-family:'Cormorant Garamond',serif;
+  font-size:44px;font-weight:700;color:var(--amber);
+  letter-spacing:6px;text-align:center;margin-bottom:4px;
+}
+.conf-sublbl{
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--muted);text-align:center;margin-bottom:26px;
+}
+.conf-rows{display:flex;flex-direction:column;gap:12px}
+.cr{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.cr:last-child{border:none;padding:0}
+.cr-k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.cr-v{font-size:14px;color:var(--cream);font-weight:500;text-align:right;max-width:58%}
+.success-emoji{
+  text-align:center;font-size:60px;margin-bottom:18px;
+  animation:pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── modal buttons ── */
+.btn-back{
+  background:transparent;border:1px solid var(--border);
+  color:var(--dim);padding:12px 22px;border-radius:var(--r-sm);
+  font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;transition:.2s;
+}
+.btn-back:hover{border-color:var(--border-s);color:var(--text)}
+.btn-next{
+  background:linear-gradient(135deg,var(--amber),var(--amber-l));
+  color:#080a0f;border:none;padding:12px 28px;border-radius:var(--r-sm);
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:.2s;
+}
+.btn-next:hover{box-shadow:0 4px 22px rgba(232,160,48,.38)}
+.btn-next:disabled{opacity:.3;cursor:not-allowed}
+
+/* ═══ SCROLLBAR ═══════════════════════════════════ */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--amber-d);border-radius:3px}
+
+/* ═══ RESPONSIVE ══════════════════════════════════ */
+@media(max-width:640px){
+  nav{padding:13px 18px}
+  .hero{padding:64px 18px 48px}
+  .hero-kpis{gap:30px}
+  .m-body,.m-foot,.m-head{padding-left:18px;padding-right:18px}
+  .frow{grid-template-columns:1fr}
+  .h-grid{grid-template-columns:repeat(2,1fr)}
+  .mesas-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══════════════════════════════════════ -->
+<nav>
+  <div class="logo">Resev<b>App</b></div>
+  <div class="nav-right">
+    <div class="nav-pill">Cali · Colombia</div>
+    <button class="btn-ghost" onclick="showTab('reservas')">📋 Mis Reservas</button>
+  </div>
+</nav>
+
+<!-- ═══ HERO ════════════════════════════════════════ -->
+<div class="hero">
+  <div class="eyebrow">✦ Sistema de Reservas en Restaurantes</div>
+  <h1>Tu mesa<br><em>perfecta</em> te espera</h1>
+  <p>Explora los mejores restaurantes de Cali, consulta disponibilidad en tiempo real y reserva en segundos.</p>
+  <div class="hero-kpis">
+    <div><div class="kpi-val">5</div><div class="kpi-lbl">Restaurantes</div></div>
+    <div><div class="kpi-val">29</div><div class="kpi-lbl">Mesas</div></div>
+    <div><div class="kpi-val" id="kReservas">0</div><div class="kpi-lbl">Reservas Hoy</div></div>
+  </div>
+</div>
+
+<!-- ═══ CONTENIDO ════════════════════════════════════ -->
+<div class="wrap">
+  <div class="sec-header">
+    <div class="sec-title">
+      <small>Catálogo</small>
+      Elige tu restaurante
+    </div>
+    <div class="toggle-tabs">
+      <button class="tab-btn on" onclick="showTab('catalogo')">Catálogo</button>
+      <button class="tab-btn"    onclick="showTab('reservas')">Mis Reservas</button>
+    </div>
+  </div>
+
+  <!-- filtros -->
+  <div class="filtros" id="zoneFiltros">
+    <button class="flt on"  onclick="filtrar('todos',this)">Todos</button>
+    <button class="flt"     onclick="filtrar('Colombiana',this)">🇨🇴 Colombiana</button>
+    <button class="flt"     onclick="filtrar('Japonesa',this)">🇯🇵 Japonesa</button>
+    <button class="flt"     onclick="filtrar('Paisa',this)">🫕 Paisa</button>
+    <button class="flt"     onclick="filtrar('Premium',this)">⭐ Premium</button>
+    <button class="flt"     onclick="filtrar('Mariscos',this)">🦞 Mariscos</button>
+  </div>
+
+  <!-- grid restaurantes -->
+  <div class="grid" id="zoneGrid"></div>
+
+  <!-- panel mis reservas -->
+  <div class="panel-res" id="zoneReservas">
+    <div id="listaRes"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ════════════════════════════════════════ -->
+<div class="overlay" id="overlay" onclick="closeMaybe(event)">
+ <div class="modal" id="modal">
+
+  <!-- cabecera -->
+  <div class="m-head">
+    <div>
+      <div class="m-rname" id="mName">—</div>
+      <div class="m-rsub"  id="mSub">—</div>
+    </div>
+    <button class="m-close" onclick="closeModal()">✕</button>
+  </div>
+
+  <!-- cuerpo -->
+  <div class="m-body" id="mBody">
+
+    <!-- barra de pasos -->
+    <div class="steps-bar">
+      <div class="sdot done" id="d1"></div>
+      <div class="sdot"      id="d2"></div>
+      <div class="sdot"      id="d3"></div>
+      <div class="sdot"      id="d4"></div>
+    </div>
+    <div class="slbls">
+      <span>Fecha</span><span>Horario</span><span>Mesa</span><span>Datos</span>
+    </div>
+
+    <!-- STEP 1 · Fecha y personas -->
+    <div id="s1">
+      <div class="frow">
+        <div class="fg">
+          <label class="flbl">📅 Fecha</label>
+          <input type="date" class="finp" id="iFecha" onchange="st.fecha=this.value">
+        </div>
+        <div class="fg">
+          <label class="flbl">👥 Personas</label>
+          <select class="finp" id="iPax" onchange="st.pax=+this.value||null">
+            <option value="">— Seleccionar —</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+            <option>5</option><option>6</option><option>7</option><option>8</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 · Horario -->
+    <div id="s2" style="display:none">
+      <div class="fg">
+        <label class="flbl">🕐 Elige tu horario</label>
+        <div class="h-grid" id="hGrid"></div>
+      </div>
+    </div>
+
+    <!-- STEP 3 · Mesa -->
+    <div id="s3" style="display:none">
+      <div class="avail-ok" id="aOk"></div>
+      <div class="avail-no" id="aNo">❌ Sin mesas disponibles para esta combinación. Prueba otro horario o fecha.</div>
+      <div class="fg">
+        <label class="flbl">🪑 Selecciona tu mesa</label>
+        <div class="mesas-grid" id="mGrid"></div>
+      </div>
+    </div>
+
+    <!-- STEP 4 · Datos del cliente -->
+    <div id="s4" style="display:none">
+      <div class="fg">
+        <label class="flbl">👤 Nombre completo</label>
+        <input type="text" class="finp" id="iNom" placeholder="Ej: Laura Martínez">
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="flbl">📧 Email</label>
+          <input type="email" class="finp" id="iMail" placeholder="tu@email.com">
+        </div>
+        <div class="fg">
+          <label class="flbl">📱 Teléfono</label>
+          <input type="tel" class="finp" id="iTel" placeholder="+57 300 000 0000">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flbl">📝 Nota especial (opcional)</label>
+        <input type="text" class="finp" id="iNota" placeholder="Cumpleaños, alergias, preferencias…">
+      </div>
+    </div>
+
+    <!-- STEP 5 · Confirmación -->
+    <div id="s5" style="display:none">
+      <div class="success-emoji">🎉</div>
+      <div class="conf-card">
+        <div class="conf-id" id="cId">—</div>
+        <div class="conf-sublbl">Código de Reserva</div>
+        <div class="conf-rows" id="cRows"></div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);text-align:center;line-height:1.7">
+        ¡Reserva confirmada! Preséntate
+        <strong style="color:var(--amber)">10 minutos antes</strong>
+        con tu código de reserva.
+      </p>
+    </div>
+
+  </div><!-- /m-body -->
+
+  <!-- pie del modal -->
+  <div class="m-foot" id="mFoot">
+    <button class="btn-back" id="btnB" onclick="prev()" style="display:none">← Atrás</button>
+    <button class="btn-next" id="btnN" onclick="next()">Siguiente →</button>
+  </div>
+
+ </div><!-- /modal -->
+</div><!-- /overlay -->
+
+<!-- ════════════════════════════════════════════════
+     JAVASCRIPT — Lógica equivalente al módulo Python
+     Implementa: encapsulamiento, condicionales,
+     polimorfismo y herencia (via objetos con proto)
+════════════════════════════════════════════════ -->
+<script>
+/* ── DATOS (espejo del backend Python) ─────────── */
+const DB = [
+  {id:1,nombre:"La Hacienda",   emoji:"🥘",cocina:"Colombiana",        precio:45000, tipo:"Restaurante",estrellas:0,
+   dir:"Cra 5 #15-30, Cali",   tel:"+57 2 555-1001",cap:40,
+   mesas:[{n:1,c:2,u:"terraza"},{n:2,c:2,u:"interior"},{n:3,c:4,u:"interior"},
+          {n:4,c:4,u:"terraza"},{n:5,c:6,u:"interior"},{n:6,c:8,u:"privada"}],
+   hrs:[["12:00","a"],["13:00","a"],["13:30","a"],["19:00","c"],["20:00","c"],["21:00","c"]]},
+
+  {id:2,nombre:"Sushi Zen",     emoji:"🍣",cocina:"Japonesa",           precio:65000, tipo:"Restaurante",estrellas:0,
+   dir:"Av. 6N #23-45, Cali",  tel:"+57 2 555-2002",cap:30,
+   mesas:[{n:1,c:2,u:"barra"},{n:2,c:2,u:"barra"},{n:3,c:4,u:"interior"},
+          {n:4,c:4,u:"interior"},{n:5,c:6,u:"privada"}],
+   hrs:[["12:30","a"],["13:30","a"],["19:30","c"],["20:30","c"],["21:30","c"]]},
+
+  {id:3,nombre:"El Fogón Paisa",emoji:"🫕",cocina:"Paisa / Antioqueña", precio:35000, tipo:"Restaurante",estrellas:0,
+   dir:"Cl 10 #8-20, Cali",    tel:"+57 2 555-3003",cap:60,
+   mesas:[{n:1,c:4,u:"interior"},{n:2,c:4,u:"interior"},{n:3,c:4,u:"patio"},
+          {n:4,c:6,u:"patio"},{n:5,c:6,u:"patio"},{n:6,c:8,u:"interior"},{n:7,c:10,u:"salón"}],
+   hrs:[["11:30","a"],["12:00","a"],["12:30","a"],["13:00","a"],["13:30","a"],
+        ["18:30","c"],["19:00","c"],["19:30","c"],["20:00","c"]]},
+
+  {id:4,nombre:"Brasa & Vino",  emoji:"🥩",cocina:"Steakhouse Premium", precio:120000,tipo:"Premium",   estrellas:1,
+   dir:"Av. Roosevelt #35-12", tel:"+57 2 555-4004",cap:20,
+   mesas:[{n:1,c:2,u:"ventana"},{n:2,c:2,u:"ventana"},{n:3,c:4,u:"interior"},
+          {n:4,c:4,u:"interior"},{n:5,c:6,u:"privada"}],
+   hrs:[["13:00","a"],["14:00","a"],["19:00","c"],["20:00","c"],["21:00","c"]]},
+
+  {id:5,nombre:"Mar Abierto",   emoji:"🦞",cocina:"Mariscos / Seafood",  precio:80000, tipo:"Restaurante",estrellas:0,
+   dir:"Cll 5 #38-90, Cali",   tel:"+57 2 555-5005",cap:35,
+   mesas:[{n:1,c:2,u:"terraza"},{n:2,c:2,u:"terraza"},{n:3,c:4,u:"interior"},
+          {n:4,c:4,u:"terraza"},{n:5,c:6,u:"interior"},{n:6,c:8,u:"salón"}],
+   hrs:[["12:00","a"],["13:00","a"],["13:30","a"],["19:00","c"],["20:00","c"],["21:00","c"]]}
+];
+
+/* ── POLIMORFISMO: describir() según tipo ────────
+   Equivale al método polimórfico del Python        */
+function describir(r){
+  if(r.tipo === "Premium"){
+    const s = "⭐".repeat(r.estrellas);
+    return `${s} ${r.nombre} | Cocina ${r.cocina} | $${r.precio.toLocaleString()}/persona | PREMIUM`;
+  }
+  return `🍴 ${r.nombre} | Cocina ${r.cocina} | $${r.precio.toLocaleString()}/persona | Restaurante`;
+}
+
+/* ── ENCAPSULAMIENTO: módulo de reservas ─────────
+   Expone solo lo necesario, estado privado via closure */
+const Reservas = (()=>{
+  let _lista = [];   // privado
+
+  function _genId(){
+    return Math.random().toString(36).substr(2,7).toUpperCase();
+  }
+
+  /* CONDICIONAL: mesa disponible */
+  function disponible(rid, fecha, hora, mesa, pax){
+    if(mesa.c < pax) return false;           // condicional: capacidad
+    return !_lista.some(r =>                 // condicional: ocupación
+      r.rid === rid && r.fecha === fecha &&
+      r.hora === hora && r.mesa === mesa.n &&
+      r.estado !== "cancelada"
+    );
+  }
+
+  /* CONDICIONAL: validar reserva completa */
+  function validar(r, fecha, hora, pax, mesa){
+    if(!r.hrs.some(h=>h[0]===hora))
+      return {ok:false, msg:`Horario ${hora} no habilitado.`};
+    if(pax < 1 || pax > mesa.c)
+      return {ok:false, msg:`Personas inválidas para esta mesa.`};
+    if(!disponible(r.id, fecha, hora, mesa, pax))
+      return {ok:false, msg:`Mesa ${mesa.n} ya reservada.`};
+    return {ok:true};
+  }
+
+  return {
+    crear(r, fecha, hora, pax, mesa, cliente){
+      const v = validar(r, fecha, hora, pax, mesa);
+      if(!v.ok) throw new Error(v.msg);
+      const rv = {
+        id: _genId(), rid:r.id, restaurante:r.nombre, emoji:r.emoji,
+        fecha, hora, pax, mesa:mesa.n, mesaUb:mesa.u, mesaCap:mesa.c,
+        ...cliente, estado:"confirmada",
+        at: new Date().toLocaleString('es-CO')
+      };
+      _lista.push(rv);
+      return rv;
+    },
+    cancelar(id){
+      const rv = _lista.find(r=>r.id===id);
+      // CONDICIONAL: solo cancelar si está confirmada
+      if(!rv) throw new Error("Reserva no encontrada.");
+      if(rv.estado !== "confirmada") throw new Error("No se puede cancelar.");
+      rv.estado = "cancelada";
+    },
+    listar(){ return [..._lista] },
+    dispCount(){ return _lista.filter(r=>r.estado==="confirmada").length },
+    mesasLibres(rid, fecha, hora, pax){
+      const r = DB.find(x=>x.id===rid);
+      return r.mesas.filter(m => disponible(rid, fecha, hora, m, pax));
+    }
+  };
+})();
+
+/* ── ESTADO DEL MODAL ──────────────────────────── */
+let st = {r:null, step:1, fecha:null, pax:null, hora:null, mesa:null};
+
+/* ════════════════════════════════════════════════
+   RENDER CATÁLOGO
+════════════════════════════════════════════════ */
+function renderGrid(lista){
+  document.getElementById('zoneGrid').innerHTML = lista.map(r=>{
+    const badge = r.tipo==="Premium"
+      ? `<div class="badge-premium">⭐ Premium</div>`:"";
+    const alm = r.hrs.filter(h=>h[1]==="a")
+      .map(h=>`<span class="chip">${h[0]}</span>`).join("");
+    const cena = r.hrs.filter(h=>h[1]==="c")
+      .map(h=>`<span class="chip c">${h[0]}</span>`).join("");
+    return `
+    <div class="rcard" onclick="openModal(${r.id})">
+      <div class="rc-img">${r.emoji}${badge}</div>
+      <div class="rc-body">
+        <div class="rc-top">
+          <div class="rc-name">${r.nombre}</div>
+          <div class="rc-price">$${r.precio.toLocaleString()}/p</div>
+        </div>
+        <div class="rc-cocina">${r.cocina}</div>
+        <div class="rc-meta">
+          <div class="rc-m">📍 ${r.dir.split(',')[0]}</div>
+          <div class="rc-m">🪑 ${r.mesas.length} mesas</div>
+        </div>
+        <div class="chip-lbl">☀️ Almuerzo</div>
+        <div class="chips">${alm}</div>
+        <div class="chip-lbl" style="margin-top:8px">🌙 Cena</div>
+        <div class="chips">${cena}</div>
+        <button class="btn-res" onclick="event.stopPropagation();openModal(${r.id})">
+          Reservar mesa →
+        </button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function filtrar(key, btn){
+  document.querySelectorAll('.flt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const lista = key==="todos"
+    ? DB
+    : DB.filter(r=>r.cocina.toLowerCase().includes(key.toLowerCase())
+               ||r.tipo.toLowerCase().includes(key.toLowerCase()));
+  renderGrid(lista);
+}
+
+/* ════════════════════════════════════════════════
+   TABS
+════════════════════════════════════════════════ */
+function showTab(t){
+  const g = document.getElementById('zoneGrid');
+  const f = document.getElementById('zoneFiltros');
+  const p = document.getElementById('zoneReservas');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  if(t==="catalogo"){
+    g.style.display="grid"; f.style.display="flex"; p.classList.remove('on');
+    document.querySelectorAll('.tab-btn')[0].classList.add('on');
+  } else {
+    g.style.display="none"; f.style.display="none"; p.classList.add('on');
+    document.querySelectorAll('.tab-btn')[1].classList.add('on');
+    renderReservas();
+  }
+}
+
+/* ════════════════════════════════════════════════
+   MIS RESERVAS
+════════════════════════════════════════════════ */
+function renderReservas(){
+  const list = Reservas.listar();
+  const el = document.getElementById('listaRes');
+  if(!list.length){
+    el.innerHTML=`<div class="empty">
+      <div class="empty-ico">🍽️</div>
+      <p>Aún no tienes reservas.<br>¡Explora el catálogo y reserva tu mesa favorita!</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = list.map((rv,i)=>`
+    <div class="rv-item">
+      <div>
+        <div class="rv-id">#${rv.id}</div>
+        <div class="rv-info">
+          <strong>${rv.emoji} ${rv.restaurante}</strong><br>
+          📅 ${rv.fecha} &nbsp;·&nbsp; 🕐 ${rv.hora}<br>
+          👥 ${rv.pax} personas &nbsp;·&nbsp; 🪑 Mesa ${rv.mesa} (${rv.mesaUb})<br>
+          👤 ${rv.nombre} &nbsp;·&nbsp; ${rv.email}
+          ${rv.nota?`<br>📝 <em>${rv.nota}</em>`:""}
+        </div>
+        ${rv.estado==="confirmada"
+          ?`<button class="btn-canc-rv" onclick="cancelarRv('${rv.id}')">Cancelar reserva</button>`:""}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="estado ${rv.estado==='confirmada'?'e-conf':'e-canc'}">${rv.estado}</div>
+      </div>
+    </div>`).join("");
+  document.getElementById('kReservas').textContent = Reservas.dispCount();
+}
+
+function cancelarRv(id){
+  if(!confirm("¿Cancelar esta reserva?")) return;
+  try{ Reservas.cancelar(id); renderReservas(); }
+  catch(e){ alert(e.message); }
+}
+
+/* ════════════════════════════════════════════════
+   MODAL
+════════════════════════════════════════════════ */
+function openModal(id){
+  st.r = DB.find(r=>r.id===id);
+  st.step=1; st.fecha=null; st.pax=null; st.hora=null; st.mesa=null;
+
+  document.getElementById('mName').textContent = st.r.nombre;
+  document.getElementById('mSub').textContent  = describir(st.r); // POLIMORFISMO
+  document.getElementById('overlay').classList.add('on');
+
+  const min = new Date().toISOString().split('T')[0];
+  document.getElementById('iFecha').min = min;
+  document.getElementById('iFecha').value = "";
+  document.getElementById('iPax').value  = "";
+  goStep(1);
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('on'); }
+function closeMaybe(e){ if(e.target===document.getElementById('overlay')) closeModal(); }
+
+function goStep(n){
+  st.step = n;
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('s'+i);
+    if(el) el.style.display = i===n?"block":"none";
+  }
+  for(let i=1;i<=4;i++){
+    document.getElementById('d'+i).className='sdot'+(i<n?' done':'');
+  }
+  const foot = document.getElementById('mFoot');
+  if(n===5){
+    foot.innerHTML=`<button class="btn-next" onclick="closeModal();showTab('reservas')">Ver mis reservas 📋</button>`;
+    return;
+  }
+  foot.innerHTML=`
+    <button class="btn-back" id="btnB" onclick="prev()" style="display:${n>1?'block':'none'}">← Atrás</button>
+    <button class="btn-next" id="btnN" onclick="next()">${n===4?"Confirmar Reserva ✓":"Siguiente →"}</button>`;
+}
+
+function next(){
+  const n = st.step;
+  if(n===1){
+    // CONDICIONAL: validar campos obligatorios
+    if(!st.fecha){ alert("Selecciona una fecha."); return; }
+    if(!st.pax)  { alert("Selecciona el número de personas."); return; }
+    renderHorarios(); goStep(2);
+  } else if(n===2){
+    if(!st.hora){ alert("Elige un horario."); return; }
+    renderMesas(); goStep(3);
+  } else if(n===3){
+    if(!st.mesa){ alert("Selecciona una mesa."); return; }
+    goStep(4);
+  } else if(n===4){
+    confirmar();
+  }
+}
+function prev(){ if(st.step>1){ if(st.step===2)st.hora=null; if(st.step===3)st.mesa=null; goStep(st.step-1); }}
+
+/* ── horarios ─────────────────────────────────── */
+function renderHorarios(){
+  const alm  = st.r.hrs.filter(h=>h[1]==="a");
+  const cena = st.r.hrs.filter(h=>h[1]==="c");
+  let html="";
+  if(alm.length){
+    html+=`<div class="h-opt h-turno">☀️ Almuerzo</div>`;
+    alm.forEach(h=>{ html+=`<div class="h-opt ${st.hora===h[0]?"on":""}" onclick="selHora('${h[0]}',this)">${h[0]}</div>`; });
+  }
+  if(cena.length){
+    html+=`<div class="h-opt h-turno">🌙 Cena</div>`;
+    cena.forEach(h=>{ html+=`<div class="h-opt ${st.hora===h[0]?"on":""}" onclick="selHora('${h[0]}',this)">${h[0]}</div>`; });
+  }
+  document.getElementById('hGrid').innerHTML = html;
+}
+function selHora(h,el){
+  st.hora=h;
+  document.querySelectorAll('.h-opt:not(.h-turno)').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ── mesas ────────────────────────────────────── */
+const UBI_ICO = {terraza:"🌿",interior:"🪑",privada:"🚪",barra:"🍱",ventana:"🌆",patio:"☀️","salón":"🏛️",salon:"🏛️"};
+function renderMesas(){
+  const libres = Reservas.mesasLibres(st.r.id, st.fecha, st.hora, st.pax);
+  const aOk=document.getElementById('aOk'), aNo=document.getElementById('aNo');
+  if(libres.length){
+    aOk.textContent=`✅ ${libres.length} mesa${libres.length>1?"s":""} disponible${libres.length>1?"s":""} para ${st.pax} persona${st.pax>1?"s":""} el ${st.fecha} a las ${st.hora}.`;
+    aOk.classList.add('on'); aNo.classList.remove('on');
+  } else {
+    aNo.classList.add('on'); aOk.classList.remove('on');
+  }
+  document.getElementById('mGrid').innerHTML = st.r.mesas.map(m=>{
+    const libre = libres.some(l=>l.n===m.n);
+    const ico   = UBI_ICO[m.u]||"🪑";
+    return `<div class="mc ${!libre?"ocupada":""} ${st.mesa===m.n&&libre?"on":""}"
+      onclick="${libre?`selMesa(${m.n},this)`:"void(0)"}">
+      <div class="mc-ico">${ico}</div>
+      <div class="mc-num">Mesa ${m.n}</div>
+      <div class="mc-cap">Hasta ${m.c} personas</div>
+      <div class="mc-ub">${m.u}</div>
+      ${!libre?`<div class="mc-occ">Ocupada</div>`:""}
+    </div>`;
+  }).join("");
+}
+function selMesa(n,el){
+  st.mesa=n;
+  document.querySelectorAll('.mc:not(.ocupada)').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ── confirmar ────────────────────────────────── */
+function confirmar(){
+  const nom  = document.getElementById('iNom').value.trim();
+  const mail = document.getElementById('iMail').value.trim();
+  const tel  = document.getElementById('iTel').value.trim();
+  const nota = document.getElementById('iNota').value.trim();
+
+  // CONDICIONALES de validación de datos
+  if(!nom || nom.length<2){ alert("Ingresa tu nombre completo."); return; }
+  if(!mail || !mail.includes('@')){ alert("Ingresa un email válido."); return; }
+  if(!tel){ alert("Ingresa tu teléfono."); return; }
+
+  const mesa = st.r.mesas.find(m=>m.n===st.mesa);
+  let rv;
+  try{
+    rv = Reservas.crear(st.r, st.fecha, st.hora, st.pax, mesa,
+                        {nombre:nom, email:mail, telefono:tel, nota});
+  } catch(e){ alert("Error: "+e.message); return; }
+
+  document.getElementById('cId').textContent = `#${rv.id}`;
+  document.getElementById('cRows').innerHTML = `
+    <div class="cr"><span class="cr-k">Restaurante</span><span class="cr-v">${rv.emoji} ${rv.restaurante}</span></div>
+    <div class="cr"><span class="cr-k">Fecha y hora</span><span class="cr-v">${rv.fecha} · ${rv.hora}</span></div>
+    <div class="cr"><span class="cr-k">Mesa</span><span class="cr-v">N° ${rv.mesa} — ${rv.mesaUb} · ${rv.pax} personas</span></div>
+    <div class="cr"><span class="cr-k">Cliente</span><span class="cr-v">${rv.nombre}</span></div>
+    <div class="cr"><span class="cr-k">Contacto</span><span class="cr-v">${rv.email}</span></div>
+    ${nota?`<div class="cr"><span class="cr-k">Nota</span><span class="cr-v">${nota}</span></div>`:""}
+  `;
+  document.getElementById('kReservas').textContent = Reservas.dispCount();
+  goStep(5);
+}
+
+/* ── INIT ─────────────────────────────────────── */
+renderGrid(DB);
+</script>
+</body>
+</html>
